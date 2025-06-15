@@ -1,10 +1,10 @@
-name: ML CI Pipeline
+name: ML CI/CD Pipeline
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 jobs:
   build-and-test:
@@ -20,6 +20,9 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
+    
+    - name: Lint (Optional)
+      run: flake8 .
 
     - name: Run Unit Tests
       run: pytest tests/
@@ -32,3 +35,36 @@ jobs:
 
     - name: Check Performance Threshold
       run: python check_performance.py
+
+    - name: Upload Model Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: model-artifacts
+        path: artifacts/
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Download Model Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: model-artifacts
+        path: artifacts/
+
+    - name: Build Docker Image
+      run: |
+        echo "Building Docker image with model..."
+        docker build -t myorg/ml-app:${{ github.sha }} .
+        docker build -t myorg/ml-app:latest .
+
+    - name: Deploy to Staging
+      run: |
+        echo "Deploying Docker image to staging..."
+        echo "Image: myorg/ml-app:${{ github.sha }}"
+        echo "Docker image built and ready for deployment!"
+        # In real scenario, you would push to Docker Hub:
+        # docker push myorg/ml-app:${{ github.sha }}
