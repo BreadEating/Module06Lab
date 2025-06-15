@@ -6,7 +6,7 @@ with open("artifacts/evaluation_results.txt", "r") as f:
     accuracy = float(line.split(":")[1].strip())
 
 # Check if accuracy meets threshold
-threshold = 0.99
+threshold = 1.01
 if accuracy >= threshold:
     print(f"PASS: Accuracy {accuracy:.4f} meets threshold {threshold}")
     sys.exit(0)
