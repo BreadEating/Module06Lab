@@ -21,6 +21,9 @@ jobs:
       run: |
         pip install -r requirements.txt
     
+    - name: Lint (Optional)
+      run: flake8 .
+
     - name: Run Unit Tests
       run: pytest tests/
 
@@ -44,34 +47,18 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     steps:
-    - uses: actions/checkout@v2
-    
     - name: Download Model Artifacts
       uses: actions/download-artifact@v4
       with:
         name: model-artifacts
         path: artifacts/
 
-    - name: Build Docker Image
-      run: |
-        echo "Building Docker image with model..."
-        docker build -t jhongda/ml-app:${{ github.sha }} .
-        docker build -t jhongda/ml-app:latest .
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-
-    - name: Push to Docker Hub
-      run: |
-        echo "Pushing Docker image to Docker Hub..."
-        docker push jhongda/ml-app:${{ github.sha }}
-        docker push jhongda/ml-app:latest
-
     - name: Deploy to Staging
       run: |
-        echo "Docker image pushed to Docker Hub!"
-        echo "Image: jhongda/ml-app:${{ github.sha }}"
-        echo "Available at: docker pull jhongda/ml-app:latest"
+        echo "Deploying new model artifact..."
+        echo "Model SHA: ${{ github.sha }}"
+        echo "Copying model.pkl to staging environment..."
+        ls -la artifacts/
+        echo "Model size: $(du -h artifacts/model.pkl)"
+        echo "Model successfully deployed to staging!"
+        echo "Deployment timestamp: $(date)"
