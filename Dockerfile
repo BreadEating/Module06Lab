@@ -8,10 +8,15 @@ RUN pip install -r requirements.txt
 
 # Copy application code
 COPY train.py evaluate.py check_performance.py ./
-COPY tests/ tests/
 
-# Copy model artifacts
+# Create artifacts directory
+RUN mkdir -p artifacts
+
+# Copy model artifacts (will be available after CI pipeline runs)
 COPY artifacts/ artifacts/
 
-# Default command
+# Set environment variable to ensure Python output is not buffered
+ENV PYTHONUNBUFFERED=1
+
+# Default command - run evaluation to show model performance
 CMD ["python", "evaluate.py"]
